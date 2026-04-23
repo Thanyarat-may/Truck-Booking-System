@@ -123,19 +123,27 @@
         border-radius: 8px;
         border: 1px solid #ffcccc;
       }
+
       .flatpickr-calendar {
         font-family: 'Prompt', sans-serif !important;
         border-radius: 16px !important; 
         box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1) !important; 
         border: none !important;
         padding: 10px !important;
-        width: 325px !important; 
+        width: 325px !important;
         max-width: 95vw !important; 
       }
-      .flatpickr-innerContainer, .flatpickr-rContainer, .dayContainer, .flatpickr-days {
+
+      .flatpickr-innerContainer, 
+      .flatpickr-rContainer, 
+      .flatpickr-days, 
+      .dayContainer {
         width: 100% !important;
         max-width: 100% !important;
         min-width: 100% !important;
+        height: auto !important;
+        min-height: 0 !important;
+        max-height: max-content !important;
       }
       .flatpickr-months .flatpickr-month {
         height: 50px !important;
@@ -154,15 +162,18 @@
       .flatpickr-current-month input.cur-year {
         font-weight: bold !important;
       }
+
       span.flatpickr-weekday {
         color: #007bff !important;
         font-weight: bold !important;
         font-size: 14px !important;
       }
+
       .flatpickr-day {
         border-radius: 10px !important; 
         line-height: 38px !important;
       }
+      
       .flatpickr-day.selected {
         background: #007bff !important;
         border-color: #007bff !important;
@@ -170,14 +181,25 @@
         font-weight: bold !important;
         box-shadow: 0 4px 10px rgba(0, 123, 255, 0.3) !important; 
       }
+      
       .flatpickr-day:hover:not(.disabled) {
         background: #e6f2ff !important;
         border-color: #e6f2ff !important;
         color: #007bff !important;
         font-weight: bold !important;
       }
-      .flatpickr-day.prevMonthDay, .flatpickr-day.nextMonthDay {
-        visibility: hidden !important; 
+
+      .flatpickr-day.prevMonthDay, 
+      .flatpickr-day.nextMonthDay {
+        color: #cccccc !important; 
+        visibility: visible !important; 
+      }
+
+      .flatpickr-day.nextMonthDay:nth-child(29),
+      .flatpickr-day.nextMonthDay:nth-child(29) ~ .flatpickr-day,
+      .flatpickr-day.nextMonthDay:nth-child(36),
+      .flatpickr-day.nextMonthDay:nth-child(36) ~ .flatpickr-day {
+        display: none !important;
       }
     </style>
   </head>
