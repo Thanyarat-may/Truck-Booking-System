@@ -7,7 +7,7 @@
       name="viewport"
       content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no"
     />
-
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
 
     <link
@@ -268,17 +268,16 @@
       </button>
     </div>
 
-    <script>
-      const GAS_URL =
-        'https://script.google.com/macros/s/AKfycbwGSWDqac9zbGEYTLPsUsFEgFXvS2LB4k7Oq2L_7aS560ou6Bwmm3Tow3-Nn7n251Vm8A/exec';
+   <script>
+      const GAS_URL = 'https://script.google.com/macros/s/AKfycbwGSWDqac9zbGEYTLPsUsFEgFXvS2LB4k7Oq2L_7aS560ou6Bwmm3Tow3-Nn7n251Vm8A/exec';
       const LIFF_ID = '2009821890-ctqB7qLG';
-
+      
       let ZIP_MAP = {};
       let userId = '';
       let selectedSlot = '';
       let selectedDistrict = '';
       let selectedProvince = '';
-      let datePickerInstance = null;
+      let datePickerInstance = null; 
 
       async function init() {
         await liff.init({ liffId: LIFF_ID });
@@ -295,20 +294,17 @@
             body: JSON.stringify({ action: 'getZipData' }),
           });
           ZIP_MAP = await res.json();
-
-          // ปลดล็อคช่องกรอกรหัสไปรษณีย์เมื่อโหลดฐานข้อมูลเสร็จแล้ว
+          
           const pcInput = document.getElementById('postcode');
           pcInput.disabled = false;
-          pcInput.placeholder = 'กรอกรหัส 5 หลัก';
-
-          // เผื่อกรณีที่มือถือของลูกค้ากรอกรหัสอัตโนมัติ (Auto-fill) เอาไว้แล้ว
-          if (pcInput.value.length === 5) {
+          pcInput.placeholder = "กรอกรหัส 5 หลัก";
+          
+          if(pcInput.value.length === 5) {
             handleZipcode();
           }
         } catch (e) {
-          console.error('โหลดข้อมูลไปรษณีย์ไม่สำเร็จ', e);
-          document.getElementById('postcode').placeholder =
-            '❌ โหลดข้อมูลล้มเหลว กรุณารีเฟรช';
+          console.error("โหลดข้อมูลไปรษณีย์ไม่สำเร็จ", e);
+          document.getElementById('postcode').placeholder = "❌ โหลดข้อมูลล้มเหลว กรุณารีเฟรช";
         }
       }
 
@@ -326,7 +322,6 @@
         const dateEl = document.getElementById('date');
         const dateLbl = document.getElementById('dateLabel');
 
-        // ✅ บังคับให้กรอกได้สูงสุดแค่ 5 หลัก (ถ้าพิมพ์เกินจะถูกตัดออกอัตโนมัติ)
         if (pc.length > 5) {
           pc = pc.slice(0, 5);
           document.getElementById('postcode').value = pc;
@@ -334,29 +329,26 @@
 
         if (pc.length === 5) {
           const list = ZIP_MAP[pc];
-
+          
           if (list && list.length > 0) {
-            // เจอข้อมูลเติมจังหวัดและอำเภอ
             provEl.value = list[0].p;
 
-            distEl.innerHTML =
-              '<option value="">-- กรุณาเลือกอำเภอ/เขต --</option>';
-            list.forEach((item) => {
+            distEl.innerHTML = '<option value="">-- กรุณาเลือกอำเภอ/เขต --</option>';
+            list.forEach(item => {
               let opt = document.createElement('option');
               opt.value = item.d + '|' + item.p;
-              opt.text = 'อ.' + item.d;
+              opt.text = "อ." + item.d;
               distEl.appendChild(opt);
             });
             distEl.disabled = false;
 
             if (list.length === 1) {
               distEl.value = list[0].d + '|' + list[0].p;
-              handleDistrictSelect();
+              handleDistrictSelect(); 
             }
+
           } else {
-            // พิมพ์ครบ 5 หลักแล้วแต่ไม่เจอข้อมูล (แสดงข้อความแทนการเด้ง Alert)
-            distEl.innerHTML =
-              '<option value="">❌ ไม่พบข้อมูลรหัสไปรษณีย์นี้</option>';
+            distEl.innerHTML = '<option value="">❌ ไม่พบข้อมูลรหัสไปรษณีย์นี้</option>';
             distEl.disabled = true;
             provEl.value = '';
             dateEl.disabled = true;
@@ -364,21 +356,18 @@
             dateLbl.innerText = '⚠️ ไม่พบข้อมูลรหัสไปรษณีย์ที่ระบุ';
             dateLbl.style.color = '#d9534f';
             document.getElementById('slotList').innerHTML = '';
-            if (datePickerInstance) datePickerInstance.clear();
+            if(datePickerInstance) datePickerInstance.clear();
           }
         } else {
-          // พิมพ์ยังไม่ครบ 5 หลัก (ไม่ต้องแจ้งเตือนอะไร)
-          distEl.innerHTML =
-            '<option value="">กรุณากรอกรหัสไปรษณีย์ 5 หลัก</option>';
+          distEl.innerHTML = '<option value="">กรุณากรอกรหัสไปรษณีย์ 5 หลัก</option>';
           distEl.disabled = true;
-          provEl.value = '';
+          provEl.value = ''; 
           dateEl.disabled = true;
           document.getElementById('quantity').disabled = true;
           dateLbl.innerText = '⚠️ กรุณาเลือกที่อยู่ก่อนเลือกวัน';
           dateLbl.style.color = '#d9534f';
           document.getElementById('slotList').innerHTML = '';
-
-          if (datePickerInstance) datePickerInstance.clear();
+          if(datePickerInstance) datePickerInstance.clear(); 
         }
       }
 
@@ -391,34 +380,31 @@
         if (!val) {
           dateEl.disabled = true;
           document.getElementById('quantity').disabled = true;
-          if (datePickerInstance) datePickerInstance.clear();
+          if(datePickerInstance) datePickerInstance.clear();
           return;
         }
 
         const [dist, prov] = val.split('|');
         selectedDistrict = dist;
         selectedProvince = prov;
-        provEl.value = prov;
+        provEl.value = prov; 
 
         const restrictedProvinces = ['นราธิวาส', 'ปัตตานี', 'ยะลา'];
         const restrictedDistricts = ['เกาะสมุย', 'เกาะพะงัน'];
-        if (
-          restrictedProvinces.includes(prov) ||
-          restrictedDistricts.includes(dist)
-        ) {
-          alert('❌ ขออภัย พื้นที่เกาะ หรือ 3 จังหวัดใต้ ไม่สามารถจัดส่งได้');
+        if (restrictedProvinces.includes(prov) || restrictedDistricts.includes(dist)) {
+          //Alert นอกพื้นที่ให้บริการ
+          Swal.fire({
+            title: 'อยู่นอกพื้นที่ให้บริการ',
+            text: 'ขออภัย พื้นที่เกาะ หรือ 3 จังหวัดใต้ ไม่สามารถจัดส่งได้',
+            icon: 'error',
+            confirmButtonText: 'ตกลง',
+            confirmButtonColor: '#d33'
+          });
           resetFields();
           return;
         }
 
-        const bkkVicinity = [
-          'กรุงเทพมหานคร',
-          'นนทบุรี',
-          'ปทุมธานี',
-          'สมุทรปราการ',
-          'สมุทรสาคร',
-          'นครปฐม',
-        ];
+        const bkkVicinity = ['กรุงเทพมหานคร', 'นนทบุรี', 'ปทุมธานี', 'สมุทรปราการ', 'สมุทรสาคร', 'นครปฐม'];
         const leadTime = bkkVicinity.includes(prov) ? 5 : 10;
 
         const minDate = new Date();
@@ -426,38 +412,67 @@
 
         dateEl.disabled = false;
         document.getElementById('quantity').disabled = false;
-        dateLbl.innerText = `📅 เลือกวันที่ (ล่วงหน้าอย่างน้อย ${leadTime} วัน)`;
+        dateLbl.innerText = `📅 เลือกวันที่ (ล่วงหน้าอย่างน้อย ${leadTime} วัน | หยุดวันอาทิตย์)`;
         dateLbl.style.color = '#28a745';
         document.getElementById('slotList').innerHTML = '';
 
         if (datePickerInstance) {
-          datePickerInstance.destroy();
+          datePickerInstance.destroy(); 
         }
 
-        datePickerInstance = flatpickr('#date', {
-          locale: 'th',
-          dateFormat: 'Y-m-d',
-          minDate: minDate,
-          disableMobile: true,
+        datePickerInstance = flatpickr("#date", {
+          locale: "th",             
+          dateFormat: "Y-m-d",      
+          minDate: minDate,         
+          disableMobile: true,      
           disable: [
-            function (date) {
-              return date.getDay() === 0;
-            },
+            function(date) {
+              return (date.getDay() === 0);
+            }
           ],
-          onChange: function (selectedDates, dateStr, instance) {
-            getSlots();
-          },
+          onChange: function(selectedDates, dateStr, instance) {
+             getSlots();
+          }
         });
       }
 
       async function getSlots() {
-        const date = document.getElementById('date').value;
+        const dateEl = document.getElementById('date');
+        const date = dateEl.value;
         const slotList = document.getElementById('slotList');
 
         if (!date) return;
 
-        slotList.innerHTML =
-          "<div style='text-align:center'>⏳ กำลังโหลด...</div>";
+        const selectedDateObj = new Date(date);
+        if (selectedDateObj.getDay() === 0) {
+           //Alert เลือกวันอาทิตย์
+           Swal.fire({
+             title: 'หยุดวันอาทิตย์',
+             text: 'ขออภัยครับ วันอาทิตย์ไม่มีรอบจัดส่ง กรุณาเลือกวันอื่น',
+             icon: 'warning',
+             confirmButtonText: 'ตกลง',
+             confirmButtonColor: '#f8bb86'
+           });
+           dateEl.value = ''; 
+           slotList.innerHTML = '';
+           document.getElementById('submitBtn').disabled = true;
+           return;
+        }
+
+        if (date < dateEl.min) {
+          // Alert เลือกวันผิดเงื่อนไข
+          Swal.fire({
+             title: 'วันที่ไม่ถูกต้อง',
+             text: 'วันที่เลือกไม่ถูกต้องตามเงื่อนไขระยะเวลาขั้นต่ำ',
+             icon: 'warning',
+             confirmButtonText: 'ตกลง',
+             confirmButtonColor: '#f8bb86'
+          });
+          dateEl.value = '';
+          return;
+        }
+
+        slotList.innerHTML = "<div style='text-align:center'>⏳ กำลังโหลด...</div>";
         const res = await fetch(GAS_URL, {
           method: 'POST',
           body: JSON.stringify({
@@ -474,18 +489,15 @@
 
         data.forEach((item) => {
           const div = document.createElement('div');
-          const currentQty =
-            parseInt(document.getElementById('quantity').value) || 1;
+          const currentQty = parseInt(document.getElementById('quantity').value) || 1;
           const isFull = item.full || item.remain < currentQty;
 
           div.className = isFull ? 'slot full' : 'slot';
-          div.innerText = `${item.slot} (ว่าง ${item.remain} คิว)`;
-
+          div.innerText = `${item.slot} (รับได้อีก ${item.remain} ชิ้น)`;
+          
           if (!isFull) {
             div.onclick = () => {
-              document
-                .querySelectorAll('.slot')
-                .forEach((s) => s.classList.remove('active'));
+              document.querySelectorAll('.slot').forEach((s) => s.classList.remove('active'));
               div.classList.add('active');
               selectedSlot = item.slot;
               document.getElementById('submitBtn').disabled = false;
@@ -497,12 +509,16 @@
 
       function checkQuantity() {
         const date = document.getElementById('date').value;
-        if (date) getSlots();
+        if(date) getSlots(); 
       }
 
       async function submitBooking() {
         const qty = parseInt(document.getElementById('quantity').value) || 0;
-        if (qty <= 0) return alert('กรุณาระบุจำนวนสินค้าให้ถูกต้อง');
+        if (qty <= 0) {
+           // Alert ใส่จำนวนผิด
+           Swal.fire({ title: 'จำนวนไม่ถูกต้อง', text: 'กรุณาระบุจำนวนสินค้าให้ถูกต้อง', icon: 'warning', confirmButtonText: 'ตกลง' });
+           return;
+        }
 
         const btn = document.getElementById('submitBtn');
         btn.disabled = true;
@@ -515,9 +531,9 @@
           postcode: document.getElementById('postcode').value,
           district: selectedDistrict,
           province: selectedProvince,
-          quantity: qty,
+          quantity: qty 
         };
-
+        
         try {
           const res = await fetch(GAS_URL, {
             method: 'POST',
@@ -525,23 +541,49 @@
           });
           const result = await res.json();
           if (result.result) {
-            alert('✅ จองสำเร็จ! รหัสจอง: ' + result.result);
-            liff.closeWindow();
+            // Alert จองสำเร็จ
+            Swal.fire({
+              title: 'จองคิวสำเร็จ!',
+              text: 'รหัสจอง: ' + result.result,
+              icon: 'success',
+              confirmButtonText: 'ตกลง',
+              confirmButtonColor: '#28a745',
+              allowOutsideClick: false 
+            }).then((res) => {
+              if (res.isConfirmed) {
+                liff.closeWindow(); 
+              }
+            });
           } else {
-            alert('❌ ผิดพลาด: ' + result.error);
+            //  Alert เกิดข้อผิดพลาดจากฝั่งเซิร์ฟเวอร์
+            Swal.fire({
+              title: 'เกิดข้อผิดพลาด',
+              text: result.error,
+              icon: 'error',
+              confirmButtonText: 'ตกลง',
+              confirmButtonColor: '#d33'
+            });
             btn.disabled = false;
-            getSlots();
+            btn.innerText = 'ยืนยันการจอง';
+            getSlots(); 
           }
         } catch (e) {
-          alert('การเชื่อมต่อขัดข้อง');
+          //Alert การเชื่อมต่อขัดข้อง
+          Swal.fire({
+            title: 'การเชื่อมต่อขัดข้อง',
+            text: 'กรุณาตรวจสอบอินเทอร์เน็ตแล้วลองใหม่อีกครั้ง',
+            icon: 'error',
+            confirmButtonText: 'ตกลง',
+            confirmButtonColor: '#d33'
+          });
           btn.disabled = false;
+          btn.innerText = 'ยืนยันการจอง';
         }
       }
 
       function resetFields() {
         document.getElementById('postcode').value = '';
-        document.getElementById('district').innerHTML =
-          '<option value="">กรุณากรอกรหัสไปรษณีย์ก่อน</option>';
+        document.getElementById('district').innerHTML = '<option value="">กรุณากรอกรหัสไปรษณีย์ก่อน</option>';
         document.getElementById('district').disabled = true;
         document.getElementById('province').value = '';
         document.getElementById('date').disabled = true;
