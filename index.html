@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>ระบบจองคิวรถส่งสินค้า</title>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no"
+    />
+
+    <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css"
+    />
+    <link
+      rel="stylesheet"
+      type="text/css"
+      href="https://npmcdn.com/flatpickr/dist/themes/material_blue.css"
+    />
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="https://npmcdn.com/flatpickr/dist/l10n/th.js"></script>
+
+    <style>
+      * {
+        box-sizing: border-box;
+        font-family: 'Prompt', sans-serif;
+      }
+      body {
+        background: #f4f6f9;
+        padding: 15px;
+        margin: 0;
+      }
+      .card {
+        background: white;
+        padding: 25px;
+        border-radius: 20px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+        max-width: 500px;
+        margin: auto;
+      }
+      h2 {
+        text-align: center;
+        color: #007bff;
+        margin-bottom: 25px;
+      }
+      label {
+        display: block;
+        margin-top: 15px;
+        font-weight: bold;
+        font-size: 14px;
+        color: #444;
+      }
+      input,
+      select {
+        width: 100%;
+        height: 48px;
+        padding: 0 12px;
+        margin-top: 8px;
+        border: 1px solid #ddd;
+        border-radius: 12px;
+        font-size: 16px;
+        outline: none;
+        display: block;
+        background: #fff;
+      }
+      select:disabled,
+      input:disabled {
+        background: #f1f1f1;
+        color: #bbb;
+        cursor: not-allowed;
+      }
+      input[readonly] {
+        background: #f8f9fa;
+        color: #666;
+      }
+      .slot-grid {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 10px;
+        margin-top: 20px;
+      }
+      .slot {
+        padding: 15px;
+        border: 1px solid #eee;
+        border-radius: 12px;
+        text-align: center;
+        cursor: pointer;
+        background: #fff;
+      }
+      .slot.active {
+        background: #28a745;
+        color: white;
+        border-color: #28a745;
+        font-weight: bold;
+      }
+      .slot.full {
+        background: #f8f9fa;
+        color: #ccc;
+        cursor: not-allowed;
+        border-style: dotted;
+      }
+      .btn {
+        width: 100%;
+        padding: 16px;
+        background: #007bff;
+        color: white;
+        border: none;
+        border-radius: 12px;
+        margin-top: 25px;
+        font-size: 18px;
+        font-weight: bold;
+        cursor: pointer;
+      }
+      .btn:disabled {
+        background: #ccc;
+        cursor: not-allowed;
+      }
+      .warning-text {
+        color: #d9534f;
+        font-weight: bold;
+        font-size: 13px;
+        text-align: center;
+        margin-top: 15px;
+        background: #fff3f3;
+        padding: 10px;
+        border-radius: 8px;
+        border: 1px solid #ffcccc;
+      }
+      .flatpickr-current-month {
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        padding: 0 !important;
+        height: 50px !important;
+      }
+      .flatpickr-current-month .cur-month {
+        margin: 0 !important;
+        padding: 0 !important;
+      }
+      .flatpickr-current-month .numInputWrapper {
+        width: 70px !important;
+        margin-left: 5px !important;
+      }
+      .flatpickr-current-month input.cur-year {
+        font-weight: bold !important;
+        padding: 0 !important;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="card">
+      <h2>🚚 จองคิวรถส่งสินค้า</h2>
+
+      <div class="warning-text">
+        💡 คำแนะนำ: หากลูกค้าซื้อที่นอนหลายหลังจัดส่งที่อยู่เดียวกัน ให้ใส่
+        "จำนวนสินค้ารวม" แล้วจองเพียง 1 ครั้ง<br />
+        (หากแยกจัดส่ง2ที่อยู่ กรุณาทำการจอง 2 ครั้ง)
+      </div>
+
+      <label>รหัสไปรษณีย์</label>
+      <input
+        type="number"
+        id="postcode"
+        disabled
+        oninput="handleZipcode()"
+      />
+
+      <label>อำเภอ/เขต</label>
+      <select id="district" disabled onchange="handleDistrictSelect()">
+        <option value="">กรุณากรอกรหัสไปรษณีย์ก่อน</option>
+      </select>
+
+      <label>จังหวัด</label>
+      <input
+        type="text"
+        id="province"
+        readonly
+        placeholder="ระบบกรอกอัตโนมัติ"
+      />
+
+      <label
+        id="dateLabel"
+        style="
+          color: #d9534f;
+          margin-top: 20px;
+          font-size: 13px;
+          font-weight: bold;
+        "
+        >⚠️ กรุณาเลือกที่อยู่ก่อนเลือกวัน</label
+      >
+      <input
+        type="text"
+        id="date"
+        disabled
+        placeholder="เลือกวันที่ต้องการจัดส่ง"
+      />
+
+      <label>จำนวนสินค้า (ชิ้น)</label>
+      <input
+        type="number"
+        id="quantity"
+        min="1"
+        value="1"
+        disabled
+        onchange="checkQuantity()"
+      />
+
+      <div id="slotList" class="slot-grid"></div>
+
+      <button class="btn" id="submitBtn" disabled onclick="submitBooking()">
+        ยืนยันการจอง
+      </button>
+    </div>
+
+    <script>
+      const GAS_URL =
+        'https://script.google.com/macros/s/AKfycbwGSWDqac9zbGEYTLPsUsFEgFXvS2LB4k7Oq2L_7aS560ou6Bwmm3Tow3-Nn7n251Vm8A/exec';
+      const LIFF_ID = '2009821890-ctqB7qLG';
+
+      let ZIP_MAP = {};
+      let userId = '';
+      let selectedSlot = '';
+      let selectedDistrict = '';
+      let selectedProvince = '';
+      let datePickerInstance = null;
+
+      async function init() {
+        await liff.init({ liffId: LIFF_ID });
+        if (!liff.isLoggedIn()) liff.login();
+        const profile = await liff.getProfile();
+        userId = profile.userId;
+        fetchZipData();
+      }
+
+      async function fetchZipData() {
+        try {
+          const res = await fetch(GAS_URL, {
+            method: 'POST',
+            body: JSON.stringify({ action: 'getZipData' }),
+          });
+          ZIP_MAP = await res.json();
+
+          // ปลดล็อคช่องกรอกรหัสไปรษณีย์เมื่อโหลดฐานข้อมูลเสร็จแล้ว
+          const pcInput = document.getElementById('postcode');
+          pcInput.disabled = false;
+          pcInput.placeholder = 'กรอกรหัส 5 หลัก';
+
+          // เผื่อกรณีที่มือถือของลูกค้ากรอกรหัสอัตโนมัติ (Auto-fill) เอาไว้แล้ว
+          if (pcInput.value.length === 5) {
+            handleZipcode();
+          }
+        } catch (e) {
+          console.error('โหลดข้อมูลไปรษณีย์ไม่สำเร็จ', e);
+          document.getElementById('postcode').placeholder =
+            '❌ โหลดข้อมูลล้มเหลว กรุณารีเฟรช';
+        }
+      }
+
+      function formatLocalDate(date) {
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+      }
+
+      function handleZipcode() {
+        let pc = document.getElementById('postcode').value;
+        const distEl = document.getElementById('district');
+        const provEl = document.getElementById('province');
+        const dateEl = document.getElementById('date');
+        const dateLbl = document.getElementById('dateLabel');
+
+        // ✅ บังคับให้กรอกได้สูงสุดแค่ 5 หลัก (ถ้าพิมพ์เกินจะถูกตัดออกอัตโนมัติ)
+        if (pc.length > 5) {
+          pc = pc.slice(0, 5);
+          document.getElementById('postcode').value = pc;
+        }
+
+        if (pc.length === 5) {
+          const list = ZIP_MAP[pc];
+
+          if (list && list.length > 0) {
+            // เจอข้อมูลเติมจังหวัดและอำเภอ
+            provEl.value = list[0].p;
+
+            distEl.innerHTML =
+              '<option value="">-- กรุณาเลือกอำเภอ/เขต --</option>';
+            list.forEach((item) => {
+              let opt = document.createElement('option');
+              opt.value = item.d + '|' + item.p;
+              opt.text = 'อ.' + item.d;
+              distEl.appendChild(opt);
+            });
+            distEl.disabled = false;
+
+            if (list.length === 1) {
+              distEl.value = list[0].d + '|' + list[0].p;
+              handleDistrictSelect();
+            }
+          } else {
+            // พิมพ์ครบ 5 หลักแล้วแต่ไม่เจอข้อมูล (แสดงข้อความแทนการเด้ง Alert)
+            distEl.innerHTML =
+              '<option value="">❌ ไม่พบข้อมูลรหัสไปรษณีย์นี้</option>';
+            distEl.disabled = true;
+            provEl.value = '';
+            dateEl.disabled = true;
+            document.getElementById('quantity').disabled = true;
+            dateLbl.innerText = '⚠️ ไม่พบข้อมูลรหัสไปรษณีย์ที่ระบุ';
+            dateLbl.style.color = '#d9534f';
+            document.getElementById('slotList').innerHTML = '';
+            if (datePickerInstance) datePickerInstance.clear();
+          }
+        } else {
+          // พิมพ์ยังไม่ครบ 5 หลัก (ไม่ต้องแจ้งเตือนอะไร)
+          distEl.innerHTML =
+            '<option value="">กรุณากรอกรหัสไปรษณีย์ 5 หลัก</option>';
+          distEl.disabled = true;
+          provEl.value = '';
+          dateEl.disabled = true;
+          document.getElementById('quantity').disabled = true;
+          dateLbl.innerText = '⚠️ กรุณาเลือกที่อยู่ก่อนเลือกวัน';
+          dateLbl.style.color = '#d9534f';
+          document.getElementById('slotList').innerHTML = '';
+
+          if (datePickerInstance) datePickerInstance.clear();
+        }
+      }
+
+      function handleDistrictSelect() {
+        const val = document.getElementById('district').value;
+        const provEl = document.getElementById('province');
+        const dateEl = document.getElementById('date');
+        const dateLbl = document.getElementById('dateLabel');
+
+        if (!val) {
+          dateEl.disabled = true;
+          document.getElementById('quantity').disabled = true;
+          if (datePickerInstance) datePickerInstance.clear();
+          return;
+        }
+
+        const [dist, prov] = val.split('|');
+        selectedDistrict = dist;
+        selectedProvince = prov;
+        provEl.value = prov;
+
+        const restrictedProvinces = ['นราธิวาส', 'ปัตตานี', 'ยะลา'];
+        const restrictedDistricts = ['เกาะสมุย', 'เกาะพะงัน'];
+        if (
+          restrictedProvinces.includes(prov) ||
+          restrictedDistricts.includes(dist)
+        ) {
+          alert('❌ ขออภัย พื้นที่เกาะ หรือ 3 จังหวัดใต้ ไม่สามารถจัดส่งได้');
+          resetFields();
+          return;
+        }
+
+        const bkkVicinity = [
+          'กรุงเทพมหานคร',
+          'นนทบุรี',
+          'ปทุมธานี',
+          'สมุทรปราการ',
+          'สมุทรสาคร',
+          'นครปฐม',
+        ];
+        const leadTime = bkkVicinity.includes(prov) ? 5 : 10;
+
+        const minDate = new Date();
+        minDate.setDate(minDate.getDate() + leadTime);
+
+        dateEl.disabled = false;
+        document.getElementById('quantity').disabled = false;
+        dateLbl.innerText = `📅 เลือกวันที่ (ล่วงหน้าอย่างน้อย ${leadTime} วัน)`;
+        dateLbl.style.color = '#28a745';
+        document.getElementById('slotList').innerHTML = '';
+
+        if (datePickerInstance) {
+          datePickerInstance.destroy();
+        }
+
+        datePickerInstance = flatpickr('#date', {
+          locale: 'th',
+          dateFormat: 'Y-m-d',
+          minDate: minDate,
+          disableMobile: true,
+          disable: [
+            function (date) {
+              return date.getDay() === 0;
+            },
+          ],
+          onChange: function (selectedDates, dateStr, instance) {
+            getSlots();
+          },
+        });
+      }
+
+      async function getSlots() {
+        const date = document.getElementById('date').value;
+        const slotList = document.getElementById('slotList');
+
+        if (!date) return;
+
+        slotList.innerHTML =
+          "<div style='text-align:center'>⏳ กำลังโหลด...</div>";
+        const res = await fetch(GAS_URL, {
+          method: 'POST',
+          body: JSON.stringify({
+            action: 'getSlots',
+            date: date,
+            userId: userId,
+          }),
+        });
+        const data = await res.json();
+
+        slotList.innerHTML = '';
+        selectedSlot = '';
+        document.getElementById('submitBtn').disabled = true;
+
+        data.forEach((item) => {
+          const div = document.createElement('div');
+          const currentQty =
+            parseInt(document.getElementById('quantity').value) || 1;
+          const isFull = item.full || item.remain < currentQty;
+
+          div.className = isFull ? 'slot full' : 'slot';
+          div.innerText = `${item.slot} ( เหลือว่าง ${item.remain} ชิ้น)`;
+
+          if (!isFull) {
+            div.onclick = () => {
+              document
+                .querySelectorAll('.slot')
+                .forEach((s) => s.classList.remove('active'));
+              div.classList.add('active');
+              selectedSlot = item.slot;
+              document.getElementById('submitBtn').disabled = false;
+            };
+          }
+          slotList.appendChild(div);
+        });
+      }
+
+      function checkQuantity() {
+        const date = document.getElementById('date').value;
+        if (date) getSlots();
+      }
+
+      async function submitBooking() {
+        const qty = parseInt(document.getElementById('quantity').value) || 0;
+        if (qty <= 0) return alert('กรุณาระบุจำนวนสินค้าให้ถูกต้อง');
+
+        const btn = document.getElementById('submitBtn');
+        btn.disabled = true;
+        btn.innerText = '⏳ กำลังจอง...';
+
+        const payload = {
+          date: document.getElementById('date').value,
+          slot: selectedSlot,
+          userId: userId,
+          postcode: document.getElementById('postcode').value,
+          district: selectedDistrict,
+          province: selectedProvince,
+          quantity: qty,
+        };
+
+        try {
+          const res = await fetch(GAS_URL, {
+            method: 'POST',
+            body: JSON.stringify({ action: 'saveBooking', data: payload }),
+          });
+          const result = await res.json();
+          if (result.result) {
+            alert('✅ จองสำเร็จ! รหัสจอง: ' + result.result);
+            liff.closeWindow();
+          } else {
+            alert('❌ ผิดพลาด: ' + result.error);
+            btn.disabled = false;
+            getSlots();
+          }
+        } catch (e) {
+          alert('การเชื่อมต่อขัดข้อง');
+          btn.disabled = false;
+        }
+      }
+
+      function resetFields() {
+        document.getElementById('postcode').value = '';
+        document.getElementById('district').innerHTML =
+          '<option value="">กรุณากรอกรหัสไปรษณีย์ก่อน</option>';
+        document.getElementById('district').disabled = true;
+        document.getElementById('province').value = '';
+        document.getElementById('date').disabled = true;
+        document.getElementById('date').value = '';
+        document.getElementById('quantity').disabled = true;
+        document.getElementById('quantity').value = '1';
+        document.getElementById('slotList').innerHTML = '';
+        if (datePickerInstance) datePickerInstance.clear();
+      }
+
+      window.addEventListener('load', init);
+    </script>
+  </body>
+</html>
