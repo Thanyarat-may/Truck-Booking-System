@@ -493,7 +493,7 @@
           const isFull = item.full || item.remain < currentQty;
 
           div.className = isFull ? 'slot full' : 'slot';
-          div.innerText = `${item.slot} (รับได้อีก ${item.remain} ชิ้น)`;
+          div.innerText = `${item.slot} (เหลือว่าง ${item.remain} คิว)`;
           
           if (!isFull) {
             div.onclick = () => {
